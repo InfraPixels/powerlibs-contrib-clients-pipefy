@@ -1,4 +1,5 @@
 from functools import lru_cache
+import logging
 import os.path
 
 from cached_property import cached_property
@@ -11,6 +12,7 @@ class PipeChild:
         self.identifier = identifier
         self.data = data
         self.client = pipe.client
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def __str__(self):
         return '<{} #{}: {}>'.format(self.__class__.__name__, self.identifier, self.data)
@@ -120,23 +122,21 @@ class PipefyClient:
         return url
 
     def get(self, endpoint):
-        print('get', endpoint)
         response = requests.get(self.get_url(endpoint), headers=self.headers)
         try:
             response.raise_for_status()
         except:
-            print(response.text)
+            self.logger.debug(response.text)
             raise
 
         return response
 
     def post(self, endpoint, data):
-        print('post', endpoint)
         response = requests.post(self.get_url(endpoint), json=data, headers=self.headers)
         try:
             response.raise_for_status()
         except:
-            print(response.text)
+            self.logger.debug(response.text)
             raise
 
         return response
