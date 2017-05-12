@@ -110,6 +110,7 @@ class PipefyClient:
         self.token = token
         self.email = email
         self.base_url = base_url
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     @cached_property
     def headers(self):
@@ -136,7 +137,7 @@ class PipefyClient:
         return self.http_request(requests.get, endpoint)
 
     def post(self, endpoint, data):
-        return self.http_request(requests.get, endpoint, json=data)
+        return self.http_request(requests.post, endpoint, json=data)
 
     def delete(self, endpoint):
         return self.http_request(requests.delete, endpoint)
