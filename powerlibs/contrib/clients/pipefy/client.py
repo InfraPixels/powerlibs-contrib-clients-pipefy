@@ -110,6 +110,7 @@ class PipefyClient:
         self.token = token
         self.email = email
         self.base_url = base_url
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     @cached_property
     def headers(self):
