@@ -1,1 +1,2 @@
+cached_property
 requests==2.13.0

@@ -46,6 +46,7 @@ class Pipe:
         self.client = client
         self.id = id
         self.data = data
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self._field_cache = {}
 
@@ -121,8 +122,8 @@ class PipefyClient:
         url = os.path.join(self.base_url, endpoint.lstrip('/'))
         return url
 
-    def get(self, endpoint):
-        response = requests.get(self.get_url(endpoint), headers=self.headers)
+    def http_request(self, method, endpoint, **kwargs):
+        response = method(self.get_url(endpoint), headers=self.headers, **kwargs)
         try:
             response.raise_for_status()
         except:
@@ -130,16 +131,15 @@ class PipefyClient:
             raise
 
         return response
+
+    def get(self, endpoint):
+        return self.http_request(requests.get, endpoint)
 
     def post(self, endpoint, data):
-        response = requests.post(self.get_url(endpoint), json=data, headers=self.headers)
-        try:
-            response.raise_for_status()
-        except:
-            self.logger.debug(response.text)
-            raise
+        return self.http_request(requests.get, endpoint, json=data)
 
-        return response
+    def delete(self, endpoint):
+        return self.http_request(requests.delete, endpoint)
 
     def get_pipe(self, pipe_id):
         url = '/pipes/{pipe_id}.json'.format(pipe_id=pipe_id)
