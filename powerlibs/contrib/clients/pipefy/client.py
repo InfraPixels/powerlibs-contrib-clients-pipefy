@@ -22,7 +22,20 @@ class PipeChild:
 
 
 class Card(PipeChild):
-    pass
+    @cached_property
+    def values(self):
+        the_values = {}
+
+        for phase_details in self.data['other_phase_details']:
+            for field_value in phase_details['field_values']:
+                label = self.pipe.get_field_label_by_id(field_value['field_id'])
+                the_values[label] = field_value['value']
+
+        for field_value in self.data['current_phase_detail']['field_values']:
+            label = self.pipe.get_field_label_by_id(field_value['id'])
+            the_values[label] = field_value['value']
+
+        return the_values
 
 
 class Phase(PipeChild):
@@ -58,7 +71,7 @@ class Pipe:
     def create_card(self, card_title, values):
         field_values = []
         for key, value in values.items():
-            field_id = self.get_field(key)
+            field_id = self.get_field_id_by_label(key)
             field_values.append({
                 'field_id': field_id,
                 'value': value
@@ -76,16 +89,29 @@ class Pipe:
         response_data = response.json()
         return Card(self, response_data['id'], response_data)
 
-    def get_field(self, key):
-        if key in self._field_cache:
-            return self._field_cache[key]
+    def get_field_id_by_label(self, label):
+        if label in self._field_cache:
+            return self._field_cache[label]
 
         for phase in self.phases:
             for field_data in phase.data['fields']:
                 self._field_cache[field_data['label']] = field_data['id']
+                self._field_cache[field_data['id']] = field_data['label']
 
-                if field_data['label'] == key:
-                    return self._field_cache[key]
+                if field_data['label'] == label:
+                    return self._field_cache[label]
+
+    def get_field_label_by_id(self, id):
+        if id in self._field_cache:
+            return self._field_cache[id]
+
+        for phase in self.phases:
+            for field_data in phase.data['fields']:
+                self._field_cache[field_data['label']] = field_data['id']
+                self._field_cache[field_data['id']] = field_data['label']
+
+                if field_data['id'] == id:
+                    return self._field_cache[id]
 
     @cached_property
     def phases(self):
@@ -143,6 +169,12 @@ class PipefyClient:
 
     def post(self, endpoint, data):
         return self.http_request(requests.post, endpoint, json=data)
+
+    def patch(self, endpoint, data):
+        return self.http_request(requests.patch, endpoint, json=data)
+
+    def put(self, endpoint, data):
+        return self.http_request(requests.put, endpoint, json=data)
 
     def delete(self, endpoint):
         return self.http_request(requests.delete, endpoint)
