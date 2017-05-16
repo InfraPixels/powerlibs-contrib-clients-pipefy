@@ -33,6 +33,11 @@ class Phase(PipeChild):
     @cached_property
     def cards(self):
         cards = []
+
+        if 'cards' not in self.data:
+            response = self.client.get('/phases/{}/cards.json'.format(self.data['id']))
+            self.data['cards'] = response.json()
+
         for card_data in self.data['cards']:
             card_id = card_data['id']
             response = self.client.get('/cards/{}'.format(card_id))
